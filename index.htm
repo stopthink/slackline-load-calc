@@ -1,0 +1,204 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+    <title>Slackline Load Calculator</title>
+
+    <style type="text/css">
+        * {
+            font-family: helvetica, arial, sans-serif;
+            font-size: 15px;
+        }
+        body {
+        }
+        .form-body {
+            float: left;
+            background: #eee;
+            padding: 15px;
+            border-top: 2px solid #f33;
+            border-bottom: 2px solid #000;
+            clear: left;
+            margin-bottom: 20px;
+        }
+        .form-body.results {
+            border-top: 2px solid #800080;
+        }
+        label, dt {
+            padding: 5px;
+            float: left;
+            clear: left;
+            width: 220px;
+        }
+        input, dd {
+            padding: 5px;
+            float: left;
+            width: 75px;
+            margin: 2px;
+        }
+        dd {
+            background: #ddd;
+            border: 1px solid #ccc;
+            width: 63px;
+        }
+        button {
+            float: left;
+            clear: left;
+            margin-left: 210px;
+        }
+        p {
+            font-style: italic;
+            font-size: 13px;
+            float: left;
+            margin: 10px 0 0 15px ;
+            color: #666;
+        }
+    
+    </style>
+    <script type="text/javascript">
+        // when the page loads, we'll setup our calculator
+        window.onload = function() { setupCalc(); }
+        
+        function setupCalc() {
+            // when the user updates a field, run the processForm function
+            inputs = document.getElementsByTagName('input');
+            for (var x = 0; x < inputs.length; x++) {
+                inputs[x].onchange = processForm;
+            }
+
+            // generate some initial results
+            processForm();
+
+        }
+
+        function processForm() {
+            // let's grab all our form fields and result fields
+            var line_length = parseFloat(document.getElementById('line_length').value);
+            var sag = parseFloat(document.getElementById('sag').value);
+            var slacker_weight = parseFloat(document.getElementById('slacker_weight').value);
+            var pulley_sheaves = parseFloat(document.getElementById('pulley_sheaves').value);
+            // divide the next three values by 100 to convert integer percentages to decimal percentages (ex: 75 to .75)
+            var pulley_efficiency = parseFloat(document.getElementById('pulley_efficiency').value / 100);
+            var brake_efficiency = parseFloat(document.getElementById('brake_efficiency').value / 100);
+            var line_stretch = parseFloat(document.getElementById('line_stretch').value / 100);
+            
+            var line_tension = document.getElementById('line_tension');
+            var line_stretch_percent = document.getElementById('line_stretch_percent');
+            var line_stretch_length = document.getElementById('line_stretch_length');
+            var mech_adv_eff = document.getElementById('mech_adv_eff');
+            var theoretical_ma = document.getElementById('theoretical_ma');
+            var eff_loss_ma = document.getElementById('eff_loss_ma');
+            var line_length_unstr = document.getElementById('line_length_unstr');
+            var min_pulley_throw = document.getElementById('min_pulley_throw');
+            var min_pulley_length = document.getElementById('min_pulley_length');
+            var pull_force_simple_ma = document.getElementById('pull_force_simple_ma');
+            var pull_force_mult_ma = document.getElementById('pull_force_mult_ma');
+
+           // this is a hidden formula found in cell B24, I'm not sure what it represents
+            var mystery_value = Math.pow(Math.pow(line_length/2, 2) + Math.pow(sag, 2), 0.5);
+            // this is a hidden formula found in cell A24, most likely a convenience variable 
+            var half_length = line_length / 2;
+
+
+            // calculate values and update result fields
+
+            var line_tension_val = slacker_weight * Math.pow(Math.pow(line_length / 2, 2) + Math.pow(sag, 2), 0.5) / (2 * sag);
+            line_tension.innerHTML = parseFloat(line_tension_val).toFixed(2);
+
+            var line_stretch_percent_val = (((mystery_value - half_length) / half_length) * 2) * 100;
+            line_stretch_percent.innerHTML = parseFloat(line_stretch_percent_val).toFixed(3) + "%";
+
+            var line_stretch_length_val = line_stretch_percent_val / 100 * line_length;
+            line_stretch_length.innerHTML = parseFloat(line_stretch_length_val).toFixed(2);
+
+            var mech_adv_eff_val = pulley_efficiency * brake_efficiency * 100;
+            mech_adv_eff.innerHTML = Math.round(mech_adv_eff_val) + "%";
+
+            var theoretical_ma_val = pulley_sheaves + 1;
+            theoretical_ma.innerHTML = theoretical_ma_val;
+
+            var eff_loss_ma_val = mech_adv_eff_val / 100 * theoretical_ma_val;
+            eff_loss_ma.innerHTML = parseFloat(eff_loss_ma_val).toFixed(2);
+
+            var line_length_unstr_val = line_length - (line_length * line_stretch);
+            line_length_unstr.innerHTML = line_length_unstr_val;
+
+            var min_pulley_throw_val = line_length - line_length_unstr_val;
+            min_pulley_throw.innerHTML = parseFloat(min_pulley_throw_val).toFixed(2);
+
+            var min_pulley_length_val = Math.round(min_pulley_throw_val * theoretical_ma_val);
+            min_pulley_length.innerHTML = Math.round(min_pulley_length_val);
+
+            var pull_force_simple_ma_val = line_tension_val / eff_loss_ma_val;
+            pull_force_simple_ma.innerHTML = Math.round(pull_force_simple_ma_val)
+
+            var pull_force_mult_ma_val = pull_force_simple_ma_val / ( 3 * ( (pulley_efficiency + brake_efficiency) / 2) );
+            pull_force_mult_ma.innerHTML = Math.round(pull_force_mult_ma_val);
+
+        }
+    </script>
+</head>
+
+<body>
+
+<h1>Slackline Load Calculator</h1>
+
+<div class="form-body">
+    <label for="line_length">Length</label> <input type="text" name="line_length" id="line_length" value="10">
+    <p>Length of your slack/long/highline, either meters or feet</p>
+    <label for="sag">Sag</label> <input type="text" name="sag" id="sag" value="2.2" />
+    <p>Total height of drop in middle of slackline with slacker, same units as above</p>
+    <label for="slacker_weight">Slacker Weight</label> <input type="text" name="slacker_weight" id="slacker_weight" value="80">
+    <p>Weight of slacker, either lbs or kg (both work)</p>
+    <label for="pulley_sheaves"># of Pulley Sheaves</label> <input type="text" name="pulley_sheaves" id="pulley_sheaves" value="0">
+    <p>For use with rope multiplier system</p>
+    <label for="pulley_efficiency">Estimated Pulley Efficiency</label> <input type="text" name="pulley_efficiency" id="pulley_efficiency" value="75">
+    <p>Estimated:  3" ball bearing=95%, 1.5" bushing=75%</p>
+    <label for="brake_efficiency">Estimated Brake Efficiency</label> <input type="text" name="brake_efficiency" id="brake_efficiency" value="60">
+    <p>I'D, GriGri, Eddy or whatever.  Should be ~60-75%      MPD=~95%</p>
+    <label for="line_stretch">Line Stretch at Tension</label> <input type="text" name="line_stretch" id="line_stretch" value="12">
+    <p>Should be 4-25%, unless using Spider Silk</p>
+</div>
+
+<div class="form-body results">
+    <dl>
+        <dt>Line Tension</dt>
+        <dd><span id="line_tension">&nbsp;</span></dd>
+        <p>Static force with non-moving slacker in middle of line (lbs or kg, whichever you used for slacker weight)</p>
+        <dt>Line Stretch w/ Slacker (%)</dt>
+        <dd><span id="line_stretch_percent">&nbsp;</span></dd>
+        <p>Stretch of slackline with slacker %</p>
+        <dt>Line Stretch w/ Slacker (Length)</dt>
+        <dd><span id="line_stretch_length">&nbsp;</span></dd>
+        <p>Stretch of slackline with slacker length</p>
+        <dt>Mechanical Advantage Efficiency</dt>
+        <dd><span id="mech_adv_eff">&nbsp;</span></dd>
+        <p>Efficiency of pulley system with brake</p>
+        <dt>Theoretical MA</dt>
+        <dd><span id="theoretical_ma">&nbsp;</span></dd>
+        <p>Highest possible mechanical advantage with system</p>
+        <dt>Efficiency Loss MA</dt>
+        <dd><span id="eff_loss_ma">&nbsp;</span></dd>
+        <p>Actual mechanical advantage with pulley system and brake loss</p>
+        <dt>Line Length (un-stretched)</dt>
+        <dd><span id="line_length_unstr">&nbsp;</span></dd>
+        <p>Minimum length of slackline required for final (stretched) length</p>
+        <dt>Minimum Pulley Throw (length)</dt>
+        <dd><span id="min_pulley_throw">&nbsp;</span></dd>
+        <p>Minimum amount of pulley length required to tension line to desired length</p>
+        <dt>Minimum Pulley Rope Length</dt>
+        <dd><span id="min_pulley_length">&nbsp;</span></dd>
+        <p>Minimum length of static rope required for desired tension/length</p>
+        <dt>Pull Force Simple MA</dt>
+        <dd><span id="pull_force_simple_ma">&nbsp;</span></dd>
+        <p>Force required to tension system (at brake)</p>
+        <dt>Pull Force Multiplied MA</dt>
+        <dd><span id="pull_force_mult_ma">&nbsp;</span></dd>
+        <p>Force required to tension system (multiplied 3:1 after brake)</p>
+    </dl>
+</div>
+
+<a href="https://github.com/sophistihip/slackline-load-calc"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
+
+</body>
+
+</html>
