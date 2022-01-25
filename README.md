@@ -5,8 +5,6 @@ Slackline Load Calculator
 
 This is meant to be a portable file with no remote dependences, so the code style is not the best. This is a duplication of the form below, I have not checked the math involved for accuracy or suitability for any purpose, use at your own risk.
 
-http://slackline.sparkfire.net
-
 
 
 Based on the calculator at:
